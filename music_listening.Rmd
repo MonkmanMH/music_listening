@@ -1,7 +1,11 @@
 ---
 title: "music listening"
 subtitle: "before and after the pandemic"
-output: html_notebook
+output: 
+  html_notebook:
+    toc: true
+    toc_float: true
+
 ---
 
 I've been working from home since mid-March. This has afforded me the opportunity to listen to more of my collection of LPs and CDs than I might normally. But how much more?
@@ -27,7 +31,7 @@ library(RcppRoll)
 
 https://www.r-bloggers.com/2021/12/how-to-connect-r-to-google-sheets-using-googlesheets4/
 
-```{r}
+```{r google_read, message=FALSE}
 # local copy
 #df_playlist <- read_excel("music playlist.xlsx")
 
@@ -44,7 +48,8 @@ music_playlist <- "https://docs.google.com/spreadsheets/d/1kHBEMFEDwyszldNbNvD2A
 #df_playlist <- read_sheet(music_playlist)
 df_playlist <- read_sheet(music_playlist, 
                           col_types = "cciiiiDccicccccccccccccccDdccD"
-                          )
+                          ) %>% 
+  rename("index" = tidyselect::contains("index"))
 
 tail(df_playlist)
 ```
@@ -58,7 +63,7 @@ df_playlist_trim <- df_playlist %>%
     is.na(disc_num) ~ 1,
     TRUE ~ as.numeric(disc_num)
   )) %>% 
-  select("index" = (starts_with("index:")), 
+  select(index, 
          year, month, day,
          date_of_acquisition,
          format, disc_num,
@@ -113,7 +118,8 @@ ecm <- df_playlist %>%
   select(artist, 
          album, 
          format,
-         play_date)
+         play_date, 
+         index)
 
 #%>% 
 #  filter(play_date > as_date("2017-03-31"))
@@ -123,7 +129,7 @@ ecm
 
 ### most played
 
-artist
+#### artist
 
 ```{r}
 
@@ -134,7 +140,7 @@ ecm %>%
 
 ```
 
-album
+#### album
 
 ```{r}
 
@@ -146,7 +152,7 @@ ecm %>%
 ```
 
 
-only played once
+### only played once
 
 ```{r}
 
@@ -169,8 +175,12 @@ most recent
 ```{r}
 
 ecm %>% 
-  select(artist, album, format, play_date) %>% 
-  arrange(desc(play_date))
+  select(artist, 
+         album, 
+         format, 
+         play_date, 
+         index) %>% 
+  arrange(desc(play_date), desc(index))
 
 ```
 
@@ -180,7 +190,7 @@ least recent (longest ago)
 
 ecm %>% 
   semi_join(ecm_min, by = c("artist", "album")) %>% 
-  select(album, artist, play_date)
+  select(album, artist, play_date, index)
 
 ```
 
@@ -188,7 +198,7 @@ ecm %>%
 
 ### ECM lps
 
-longest-ago played LPs
+#### longest-ago played LPs
 
 ```{r}
 
@@ -201,6 +211,8 @@ ecm %>%
   
 
 ```
+
+#### longest-ago played LPs but...
 
 Longest ago played, where have LP (i.e. if it was played via another format, it gets skipped)
 
@@ -233,17 +245,20 @@ ecm_lp %>%
 
 
 
-last played
+#### most recently played
 
 ```{r}
-
+# option 1 - the entire list
 ecm %>% 
   filter(format == "LP") %>% 
-  group_by(artist, album) %>% 
-  summarise(last_played = max(play_date)) %>% 
-  ungroup() %>% 
-  slice_max(order_by = last_played, n = 5)
-  
+  arrange(desc(index))
+
+# option 2: top 10
+ecm %>% 
+  filter(format == "LP") %>% 
+  arrange(desc(index)) %>% 
+  slice_head(n = 10)
+
 
 ```
 
