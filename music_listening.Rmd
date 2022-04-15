@@ -47,7 +47,7 @@ music_playlist <- "https://docs.google.com/spreadsheets/d/1kHBEMFEDwyszldNbNvD2A
 
 #df_playlist <- read_sheet(music_playlist)
 df_playlist <- read_sheet(music_playlist, 
-                          col_types = "cciiiiDccicccccccccccccccDdccD"
+                          col_types = "cciiiiDcciccccccccccccccccDdccD"
                           ) %>% 
   rename("index" = tidyselect::contains("index"))
 
