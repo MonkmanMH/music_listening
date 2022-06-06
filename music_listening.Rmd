@@ -298,3 +298,14 @@ metheny %>%
 ```
 
 
+```{r}
+
+metheny %>% 
+  group_by(album) %>% 
+  mutate(last_played = max(play_date)) %>% 
+  ungroup() %>% 
+  group_by(album, last_played) %>% 
+  summarise(plays = n()) %>% 
+  arrange(desc(plays), last_played)
+
+```
