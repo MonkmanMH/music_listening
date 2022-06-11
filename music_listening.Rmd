@@ -8,7 +8,9 @@ output:
 
 ---
 
-I've been working from home since mid-March. This has afforded me the opportunity to listen to more of my collection of LPs and CDs than I might normally. But how much more?
+I've been working from home since mid-March 2020. This has afforded me the opportunity to listen to more of my collection of LPs and CDs than I might normally. But how much more?
+
+I have been tracking my listening at home since November 2016, recording the artist, album, format, and date (along with a few other variables that don't figure into this analysis).
 
 ```{r setup}
 # tidyverse
