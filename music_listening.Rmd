@@ -228,8 +228,6 @@ ecm_last_played <- ecm %>%
   summarise(last_played = max(play_date)) %>% 
   ungroup()
 
-ecm_last_played
-
 # check unique
 ecm_last_played %>% 
   group_by(artist, album) %>% 
