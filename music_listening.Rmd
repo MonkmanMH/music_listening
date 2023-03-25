@@ -1,11 +1,13 @@
 ---
 title: "music listening"
-subtitle: "before and after the pandemic"
-output: 
+subtitle: before and after the pandemic
+output:
+  html_document:
+    toc: yes
+    df_print: paged
   html_notebook:
-    toc: true
-    toc_float: true
-
+    toc: yes
+    toc_float: yes
 ---
 
 I've been working from home since mid-March 2020. This has afforded me the opportunity to listen to more of my collection of LPs and CDs than I might normally. But how much more?
@@ -17,6 +19,7 @@ I have been tracking my listening at home since November 2016, recording the art
 library(tidyverse)
 library(lubridate)
 library(readxl)
+library(scales)
 
 # utilities
 library(janitor)
@@ -48,12 +51,30 @@ music_playlist <- "https://docs.google.com/spreadsheets/d/1kHBEMFEDwyszldNbNvD2A
 
 
 #df_playlist <- read_sheet(music_playlist)
-df_playlist <- read_sheet(music_playlist, 
-                          col_types = "cciiiiDcciccccccccccccccccDdccD"
-                          ) %>% 
-  rename("index" = tidyselect::contains("index"))
+#df_playlist <- googlesheets4::read_sheet(music_playlist, 
+#                          col_types = "cciiiiDccicccccccccccccccccccDdcclc"
+#                          ) %>% 
+#  rename("index" = tidyselect::contains("index"))
+#
+#tail(df_playlist)
+
+
+# use the "range_speedread()" function to speed things up
+# see https://googlesheets4.tidyverse.org/reference/range_speedread.html
+df_playlist <- googlesheets4::range_speedread(music_playlist)
+tail(df_playlist)
+
+df_playlist <- googlesheets4::range_speedread(music_playlist,
+                                              col_types = cols(
+                                                disc_num = col_integer()
+                                              ))
+
+df_playlist <- df_playlist %>% 
+  rename("index" = starts_with("index"))
 
 tail(df_playlist)
+
+
 ```
 
 
@@ -70,10 +91,12 @@ df_playlist_trim <- df_playlist %>%
          date_of_acquisition,
          format, disc_num,
          genre) %>% 
-  mutate(play_date = make_date(year, month, day)) %>% 
-  filter(play_date > as_date("2017-03-31"))
+#  mutate(play_date = make_date(year, month, day)) %>% 
+  mutate(play_date = as_date(glue::glue("{year}-{month}-{day}"))) %>% 
+  filter(play_date > lubridate::as_date("2017-03-31"))
 
 max(df_playlist_trim$play_date)
+min(df_playlist_trim$play_date)
 
 df_playlist_trim
 
@@ -95,23 +118,42 @@ df_play_summary <- df_play_summary %>%
 
 df_play_summary
 
+ls.str(df_play_summary)
+
 ```
 
 ## plot trend
 
 ```{r plot_trend}
 
+
 ggplot(df_play_summary, aes(x = play_date, y = roll_avg)) +
   geom_line() +
 #  geom_smooth(span = 0.25)
 ## note: now there are >1000 observations, the function switches to
 ##  `method = "gam"` and `span = ` does not apply
-  geom_smooth()
+  geom_smooth() 
+
 
 
 ```
 
 
+```{r plot_trend_2023}
+
+df_play_summary %>%
+  filter(
+    play_date > as_date("2023-01-01") 
+#    &
+#    play_date < as_date("2023-02-28")
+    ) %>% 
+  # plot
+      ggplot(aes(x = play_date, y = roll_avg)) +
+      geom_line() +
+      geom_smooth(span = 0.75)
+
+
+```
 
 ## ECM
 
@@ -206,6 +248,8 @@ ecm %>%
 
 #### longest-ago played LPs
 
+These are the longest-ago played LPs, but may have been played more recently in another format
+
 ```{r}
 
 ecm %>% 
@@ -218,9 +262,9 @@ ecm %>%
 
 ```
 
-#### longest-ago played LPs but...
+#### longest-ago played LPs, full stop
 
-Longest ago played, where have LP (i.e. if it was played via another format, it gets skipped)
+Longest ago played LP, where it is only the LP that has been played
 
 ```{r}
 ecm_last_played <- ecm %>% 
@@ -242,7 +286,7 @@ ecm_lp <- ecm %>%
 # join, slice with 10 least recently played
 ecm_lp %>% 
   left_join(ecm_last_played, by = c("artist", "album")) %>% 
-  slice_min(order_by = last_played, n = 10)
+  slice_min(order_by = last_played, n = 20)
   
 
 ```
@@ -309,3 +353,38 @@ metheny %>%
   arrange(desc(plays), last_played)
 
 ```
+
+
+## is this a replay of the same item?
+
+This might be a challenge due to inconsistencies in data collection
+
+```{r}
+x <- tibble(
+  value = c(1, 1, 2, 3, 4, 4),
+  name = c("a", "b", "c", "d", "e", "e"))
+
+x %>% 
+  group_by(value, name) %>% 
+  count()
+
+```
+
+
+```{r}
+
+df_playlist %>% 
+  filter(format != "iTunes") %>%
+  filter(format != "iMusic") %>% 
+  filter(format != "iPhone") %>% 
+  filter(format != "foobar2000") %>% 
+  #
+  group_by(artist, album, format) %>% 
+  count() %>% 
+  filter(n > 1) %>% 
+  arrange(desc(n))
+  
+
+
+```
+
