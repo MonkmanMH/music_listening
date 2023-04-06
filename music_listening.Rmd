@@ -3,9 +3,7 @@ title: "music listening"
 subtitle: before and after the pandemic
 output:
   html_document:
-    toc: yes
     df_print: paged
-  html_notebook:
     toc: yes
     toc_float: yes
 ---
@@ -370,6 +368,7 @@ x %>%
 
 ```
 
+LP and CD only
 
 ```{r}
 
@@ -388,3 +387,23 @@ df_playlist %>%
 
 ```
 
+Everything
+
+
+```{r}
+
+df_playlist %>% 
+  group_by(artist, album) %>% 
+  count() %>% 
+  filter(
+    n > 1 &
+    !is.na(artist)
+    ) %>% 
+  arrange(desc(n))
+  
+
+
+```
+
+
+-30-
