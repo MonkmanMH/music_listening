@@ -248,7 +248,7 @@ ecm %>%
 
 These are the longest-ago played LPs, but may have been played more recently in another format
 
-```{r}
+```{r ecm_longest_ago_lp}
 
 ecm %>% 
   filter(format == "LP") %>% 
@@ -293,7 +293,7 @@ ecm_lp %>%
 
 #### most recently played
 
-```{r}
+```{r ecm_most_recent}
 # option 1 - the entire list
 ecm %>% 
   filter(format == "LP") %>% 
@@ -311,7 +311,7 @@ ecm %>%
 
 ## Pat Metheny
 
-```{r}
+```{r pat_metheny}
 
 metheny <- df_playlist %>% 
   filter(str_detect(artist, "Metheny")) %>% 
@@ -330,7 +330,7 @@ metheny
 
 
 
-```{r}
+```{r pat_metheny_most}
 
 metheny %>% 
   group_by(album) %>% 
