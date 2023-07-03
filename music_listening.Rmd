@@ -236,7 +236,7 @@ least recent (longest ago)
 
 ecm %>% 
   semi_join(ecm_min, by = c("artist", "album")) %>% 
-  select(album, artist, play_date, index)
+  select(artist, album, play_date, index)
 
 ```
 
@@ -302,8 +302,7 @@ ecm %>%
 # option 2: top 10
 ecm %>% 
   filter(format == "LP") %>% 
-  arrange(desc(index)) %>% 
-  slice_head(n = 10)
+  arrange(desc(index))
 
 
 ```
