@@ -12,7 +12,7 @@ I've been working from home since mid-March 2020. This has afforded me the oppor
 
 I have been tracking my listening at home since November 2016, recording the artist, album, format, and date (along with a few other variables that don't figure into this analysis).
 
-```{r setup}
+```{r setup, echo=FALSE, message=FALSE}
 # tidyverse
 library(tidyverse)
 library(lubridate)
@@ -77,6 +77,11 @@ tail(df_playlist)
 
 
 
+## plot trend
+
+
+### all formats
+
 ```{r}
 
 df_playlist_trim <- df_playlist %>% 
@@ -120,8 +125,6 @@ ls.str(df_play_summary)
 
 ```
 
-## plot trend
-
 ```{r plot_trend}
 
 
@@ -152,6 +155,91 @@ df_play_summary %>%
 
 
 ```
+
+
+
+### LP & CD only
+
+
+
+```{r}
+
+df_playlist_trim <- df_playlist %>% 
+  mutate(disc_num = case_when(
+    is.na(disc_num) ~ 1,
+    TRUE ~ as.numeric(disc_num)
+  )) %>% 
+  select(index, 
+         year, month, day,
+         date_of_acquisition,
+         format, disc_num,
+         genre) %>% 
+#  mutate(play_date = make_date(year, month, day)) %>% 
+  mutate(play_date = as_date(glue::glue("{year}-{month}-{day}"))) %>% 
+  filter(play_date > lubridate::as_date("2017-03-31")) |> 
+# BIG CHANGE
+  filter(format %in% c("LP", "CD"))
+
+max(df_playlist_trim$play_date)
+min(df_playlist_trim$play_date)
+
+df_playlist_trim
+
+df_playlist_trim %>% 
+  group_by(date_of_acquisition) %>% 
+  tally
+
+df_playlist_trim %>% 
+  group_by(play_date) %>% 
+  tally()
+
+df_play_summary <- df_playlist_trim %>% 
+  group_by(play_date) %>%
+  summarise(n = sum(disc_num))
+
+
+df_play_summary <- df_play_summary %>%
+  mutate(roll_avg = roll_mean(x = n, n = 14, fill = NA))
+
+df_play_summary
+
+ls.str(df_play_summary)
+
+```
+
+```{r plot_trend_LPCD}
+
+
+ggplot(df_play_summary, aes(x = play_date, y = roll_avg)) +
+  geom_line() +
+#  geom_smooth(span = 0.25)
+## note: now there are >1000 observations, the function switches to
+##  `method = "gam"` and `span = ` does not apply
+  geom_smooth() 
+
+
+
+```
+
+
+```{r plot_trend_LPCD_2023}
+
+df_play_summary %>%
+  filter(
+    play_date > as_date("2023-01-01") 
+#    &
+#    play_date < as_date("2023-02-28")
+    ) %>% 
+  # plot
+      ggplot(aes(x = play_date, y = roll_avg)) +
+      geom_line() +
+      geom_smooth(span = 0.75)
+
+
+```
+
+
+
 
 ## ECM
 
