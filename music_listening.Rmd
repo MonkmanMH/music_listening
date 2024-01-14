@@ -28,6 +28,10 @@ library(RcppRoll)
 # - see https://googlesheets4.tidyverse.org/reference/gs4_auth.html for details
 
 
+# Rmarkdown chunk options
+
+knitr::opts_chunk$set(echo = FALSE)
+
 ```
 
 ## read from google
@@ -48,19 +52,12 @@ https://www.r-bloggers.com/2021/12/how-to-connect-r-to-google-sheets-using-googl
 music_playlist <- "https://docs.google.com/spreadsheets/d/1kHBEMFEDwyszldNbNvD2A6Pt8KYoUACDZZ0usWvrruA/edit?usp=sharing"
 
 
-#df_playlist <- read_sheet(music_playlist)
-#df_playlist <- googlesheets4::read_sheet(music_playlist, 
-#                          col_types = "cciiiiDccicccccccccccccccccccDdcclc"
-#                          ) |> 
-#  rename("index" = tidyselect::contains("index"))
-#
-#tail(df_playlist)
-
-
 # use the "range_speedread()" function to speed things up
 # see https://googlesheets4.tidyverse.org/reference/range_speedread.html
 df_playlist <- googlesheets4::range_speedread(music_playlist)
-tail(df_playlist)
+
+#tail(df_playlist)
+
 
 df_playlist <- googlesheets4::range_speedread(music_playlist,
                                               col_types = cols(
@@ -71,7 +68,7 @@ df_playlist <- df_playlist |>
   rename("index" = starts_with("index")) |> 
   mutate(index = as.integer(index))
 
-tail(df_playlist)
+#tail(df_playlist)
 
 
 ```
@@ -102,15 +99,15 @@ df_playlist_trim <- df_playlist |>
 max(df_playlist_trim$play_date)
 min(df_playlist_trim$play_date)
 
-df_playlist_trim
+#df_playlist_trim
 
-df_playlist_trim |> 
-  group_by(date_of_acquisition) |> 
-  tally()
+#df_playlist_trim |> 
+#  group_by(date_of_acquisition) |> 
+#  tally()
 
-df_playlist_trim |> 
-  group_by(play_date) |> 
-  tally()
+#df_playlist_trim |> 
+#  group_by(play_date) |> 
+#  tally()
 
 df_play_summary <- df_playlist_trim |> 
   group_by(play_date) |>
@@ -120,9 +117,9 @@ df_play_summary <- df_playlist_trim |>
 df_play_summary <- df_play_summary |>
   mutate(roll_avg = roll_mean(x = n, n = 14, fill = NA))
 
-df_play_summary
+#df_play_summary
 
-ls.str(df_play_summary)
+#ls.str(df_play_summary)
 
 ```
 
@@ -161,7 +158,7 @@ df_play_summary |>
 
 ### LP & CD only
 
-
+iTunes use (not differentiated between iPod, iPhone, or desktop) and streaming on iPhone didn't start being tracked until c.2022 ... so the appearance of daily listening has gone up as a consequence.
 
 ```{r}
 
@@ -184,15 +181,15 @@ df_playlist_trim <- df_playlist |>
 max(df_playlist_trim$play_date)
 min(df_playlist_trim$play_date)
 
-df_playlist_trim
+#df_playlist_trim
 
-df_playlist_trim |> 
-  group_by(date_of_acquisition) |> 
-  tally()
+#df_playlist_trim |> 
+#  group_by(date_of_acquisition) |> 
+#  tally()
 
-df_playlist_trim |> 
-  group_by(play_date) |> 
-  tally()
+#df_playlist_trim |> 
+#  group_by(play_date) |> 
+#  tally()
 
 df_play_summary <- df_playlist_trim |> 
   group_by(play_date) |>
@@ -202,9 +199,9 @@ df_play_summary <- df_playlist_trim |>
 df_play_summary <- df_play_summary |>
   mutate(roll_avg = roll_mean(x = n, n = 14, fill = NA))
 
-df_play_summary
+#df_play_summary
 
-ls.str(df_play_summary)
+#ls.str(df_play_summary)
 
 ```
 
@@ -259,7 +256,7 @@ ecm <- df_playlist |>
 #|> 
 #  filter(play_date > as_date("2017-03-31"))
 
-ecm
+#ecm
 ```
 
 ### most played
@@ -383,21 +380,17 @@ ecm_lp |>
 #### most recently played
 
 ```{r ecm_most_recent}
-# option 1 - the entire list
+# the entire list
 ecm |> 
   filter(format == "LP") |> 
   arrange(desc(index))
 
-# option 2: top 10
-ecm |> 
-  filter(format == "LP") |> 
-  arrange(desc(index))
 
 
 ```
 
 
-## tally by artist function
+## tally by artist
 
 ```{r artist_function}
 
@@ -464,6 +457,13 @@ artist_tally("XTC")
 artist_tally("Steely Dan")
 ```
 
+
+### Glenn Gould
+
+
+```{r}
+artist_tally("Glenn Gould")
+```
 
 ### Tallis Scholars
 
