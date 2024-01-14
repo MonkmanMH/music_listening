@@ -51,7 +51,7 @@ music_playlist <- "https://docs.google.com/spreadsheets/d/1kHBEMFEDwyszldNbNvD2A
 #df_playlist <- read_sheet(music_playlist)
 #df_playlist <- googlesheets4::read_sheet(music_playlist, 
 #                          col_types = "cciiiiDccicccccccccccccccccccDdcclc"
-#                          ) %>% 
+#                          ) |> 
 #  rename("index" = tidyselect::contains("index"))
 #
 #tail(df_playlist)
@@ -67,8 +67,9 @@ df_playlist <- googlesheets4::range_speedread(music_playlist,
                                                 disc_num = col_integer()
                                               ))
 
-df_playlist <- df_playlist %>% 
-  rename("index" = starts_with("index"))
+df_playlist <- df_playlist |> 
+  rename("index" = starts_with("index")) |> 
+  mutate(index = as.integer(index))
 
 tail(df_playlist)
 
@@ -84,18 +85,18 @@ tail(df_playlist)
 
 ```{r}
 
-df_playlist_trim <- df_playlist %>% 
+df_playlist_trim <- df_playlist |> 
   mutate(disc_num = case_when(
     is.na(disc_num) ~ 1,
     TRUE ~ as.numeric(disc_num)
-  )) %>% 
+  )) |> 
   select(index, 
          year, month, day,
          date_of_acquisition,
          format, disc_num,
-         genre) %>% 
-#  mutate(play_date = make_date(year, month, day)) %>% 
-  mutate(play_date = as_date(glue::glue("{year}-{month}-{day}"))) %>% 
+         genre) |> 
+#  mutate(play_date = make_date(year, month, day)) |> 
+  mutate(play_date = as_date(glue::glue("{year}-{month}-{day}"))) |> 
   filter(play_date > lubridate::as_date("2017-03-31"))
 
 max(df_playlist_trim$play_date)
@@ -103,20 +104,20 @@ min(df_playlist_trim$play_date)
 
 df_playlist_trim
 
-df_playlist_trim %>% 
-  group_by(date_of_acquisition) %>% 
-  tally
-
-df_playlist_trim %>% 
-  group_by(play_date) %>% 
+df_playlist_trim |> 
+  group_by(date_of_acquisition) |> 
   tally()
 
-df_play_summary <- df_playlist_trim %>% 
-  group_by(play_date) %>%
+df_playlist_trim |> 
+  group_by(play_date) |> 
+  tally()
+
+df_play_summary <- df_playlist_trim |> 
+  group_by(play_date) |>
   summarise(n = sum(disc_num))
 
 
-df_play_summary <- df_play_summary %>%
+df_play_summary <- df_play_summary |>
   mutate(roll_avg = roll_mean(x = n, n = 14, fill = NA))
 
 df_play_summary
@@ -142,12 +143,12 @@ ggplot(df_play_summary, aes(x = play_date, y = roll_avg)) +
 
 ```{r plot_trend_2023}
 
-df_play_summary %>%
+df_play_summary |>
   filter(
     play_date > as_date("2023-01-01") 
 #    &
 #    play_date < as_date("2023-02-28")
-    ) %>% 
+    ) |> 
   # plot
       ggplot(aes(x = play_date, y = roll_avg)) +
       geom_line() +
@@ -164,18 +165,18 @@ df_play_summary %>%
 
 ```{r}
 
-df_playlist_trim <- df_playlist %>% 
+df_playlist_trim <- df_playlist |> 
   mutate(disc_num = case_when(
     is.na(disc_num) ~ 1,
     TRUE ~ as.numeric(disc_num)
-  )) %>% 
+  )) |> 
   select(index, 
          year, month, day,
          date_of_acquisition,
          format, disc_num,
-         genre) %>% 
-#  mutate(play_date = make_date(year, month, day)) %>% 
-  mutate(play_date = as_date(glue::glue("{year}-{month}-{day}"))) %>% 
+         genre) |> 
+#  mutate(play_date = make_date(year, month, day)) |> 
+  mutate(play_date = as_date(glue::glue("{year}-{month}-{day}"))) |> 
   filter(play_date > lubridate::as_date("2017-03-31")) |> 
 # BIG CHANGE
   filter(format %in% c("LP", "CD"))
@@ -185,20 +186,20 @@ min(df_playlist_trim$play_date)
 
 df_playlist_trim
 
-df_playlist_trim %>% 
-  group_by(date_of_acquisition) %>% 
-  tally
-
-df_playlist_trim %>% 
-  group_by(play_date) %>% 
+df_playlist_trim |> 
+  group_by(date_of_acquisition) |> 
   tally()
 
-df_play_summary <- df_playlist_trim %>% 
-  group_by(play_date) %>%
+df_playlist_trim |> 
+  group_by(play_date) |> 
+  tally()
+
+df_play_summary <- df_playlist_trim |> 
+  group_by(play_date) |>
   summarise(n = sum(disc_num))
 
 
-df_play_summary <- df_play_summary %>%
+df_play_summary <- df_play_summary |>
   mutate(roll_avg = roll_mean(x = n, n = 14, fill = NA))
 
 df_play_summary
@@ -224,12 +225,12 @@ ggplot(df_play_summary, aes(x = play_date, y = roll_avg)) +
 
 ```{r plot_trend_LPCD_2023}
 
-df_play_summary %>%
+df_play_summary |>
   filter(
     play_date > as_date("2023-01-01") 
 #    &
 #    play_date < as_date("2023-02-28")
-    ) %>% 
+    ) |> 
   # plot
       ggplot(aes(x = play_date, y = roll_avg)) +
       geom_line() +
@@ -245,17 +246,17 @@ df_play_summary %>%
 
 ```{r}
 
-ecm <- df_playlist %>% 
-  filter(str_detect(label, "ECM")) %>% 
-  drop_na(year) %>% 
-  mutate(play_date = make_date(year, month, day)) %>% 
+ecm <- df_playlist |> 
+  filter(str_detect(label, "ECM")) |> 
+  drop_na(year) |> 
+  mutate(play_date = make_date(year, month, day)) |> 
   select(artist, 
          album, 
          format,
          play_date, 
          index)
 
-#%>% 
+#|> 
 #  filter(play_date > as_date("2017-03-31"))
 
 ecm
@@ -267,9 +268,9 @@ ecm
 
 ```{r}
 
-ecm %>% 
-  group_by(artist) %>% 
-  tally() %>% 
+ecm |> 
+  group_by(artist) |> 
+  tally() |> 
   arrange(desc(n))
 
 ```
@@ -278,9 +279,9 @@ ecm %>%
 
 ```{r}
 
-ecm %>% 
-  group_by(artist, album) %>% 
-  tally() %>% 
+ecm |> 
+  group_by(artist, album) |> 
+  tally() |> 
   arrange(desc(n))
 
 ```
@@ -290,10 +291,10 @@ ecm %>%
 
 ```{r}
 
-ecm_min <- ecm %>% 
-#  filter(format == LP) %>% 
-  group_by(artist, album) %>% 
-  tally() %>% 
+ecm_min <- ecm |> 
+#  filter(format == LP) |> 
+  group_by(artist, album) |> 
+  tally() |> 
   filter(n == 1)
   
 ecm_min
@@ -308,12 +309,12 @@ most recent
 
 ```{r}
 
-ecm %>% 
+ecm |> 
   select(artist, 
          album, 
          format, 
          play_date, 
-         index) %>% 
+         index) |> 
   arrange(desc(play_date), desc(index))
 
 ```
@@ -322,8 +323,8 @@ least recent (longest ago)
 
 ```{r}
 
-ecm %>% 
-  semi_join(ecm_min, by = c("artist", "album")) %>% 
+ecm |> 
+  semi_join(ecm_min, by = c("artist", "album")) |> 
   select(artist, album, play_date, index)
 
 ```
@@ -338,11 +339,11 @@ These are the longest-ago played LPs, but may have been played more recently in 
 
 ```{r ecm_longest_ago_lp}
 
-ecm %>% 
-  filter(format == "LP") %>% 
-  group_by(artist, album) %>% 
-  summarise(last_played = max(play_date)) %>% 
-  ungroup() %>% 
+ecm |> 
+  filter(format == "LP") |> 
+  group_by(artist, album) |> 
+  summarise(last_played = max(play_date)) |> 
+  ungroup() |> 
   slice_min(order_by = last_played, n = 10)
   
 
@@ -353,25 +354,25 @@ ecm %>%
 Longest ago played LP, where it is only the LP that has been played
 
 ```{r}
-ecm_last_played <- ecm %>% 
-  group_by(artist, album) %>% 
-  summarise(last_played = max(play_date)) %>% 
+ecm_last_played <- ecm |> 
+  group_by(artist, album) |> 
+  summarise(last_played = max(play_date)) |> 
   ungroup()
 
 # check unique
-ecm_last_played %>% 
-  group_by(artist, album) %>% 
-  tally() %>% 
+ecm_last_played |> 
+  group_by(artist, album) |> 
+  tally() |> 
   filter(n > 1)
 
 # create list of unique ECM LPs
-ecm_lp <- ecm %>%
-  filter(format == "LP") %>% 
+ecm_lp <- ecm |>
+  filter(format == "LP") |> 
   distinct(artist, album)
 
 # join, slice with 10 least recently played
-ecm_lp %>% 
-  left_join(ecm_last_played, by = c("artist", "album")) %>% 
+ecm_lp |> 
+  left_join(ecm_last_played, by = c("artist", "album")) |> 
   slice_min(order_by = last_played, n = 20)
   
 
@@ -383,60 +384,92 @@ ecm_lp %>%
 
 ```{r ecm_most_recent}
 # option 1 - the entire list
-ecm %>% 
-  filter(format == "LP") %>% 
+ecm |> 
+  filter(format == "LP") |> 
   arrange(desc(index))
 
 # option 2: top 10
-ecm %>% 
-  filter(format == "LP") %>% 
+ecm |> 
+  filter(format == "LP") |> 
   arrange(desc(index))
 
 
 ```
 
 
-## Pat Metheny
+## tally by artist function
 
-```{r pat_metheny}
+```{r artist_function}
 
-metheny <- df_playlist %>% 
-  filter(str_detect(artist, "Metheny")) %>% 
-  drop_na(year) %>% 
-  mutate(play_date = make_date(year, month, day)) %>% 
+
+artist_tally <- function(artist_name){
+
+artist_list <- df_playlist |> 
+  filter(str_detect(artist, artist_name)) |> 
+  drop_na(year) |> 
+  mutate(play_date = make_date(year, month, day)) |> 
   select(artist, 
          album, 
          format,
          play_date)
 
-metheny
+#artist_list
 
-```
 
 ### most played
 
 
+#artist_list |> 
+#  group_by(album) |> 
+#  tally() |> 
+#  arrange(desc(n))
 
-```{r pat_metheny_most}
 
-metheny %>% 
-  group_by(album) %>% 
-  tally() %>% 
-  arrange(desc(n))
+artist_list |> 
+  group_by(album) |> 
+  mutate(last_played = max(play_date)) |> 
+  ungroup() |> 
+  group_by(album, last_played) |> 
+  summarise(plays = n()) |> 
+  arrange(desc(plays), last_played)
+
+}
+
+#artist_name <- "Pat Metheny"
+
 
 ```
 
 
+### Pat Metheny
+
+
 ```{r}
+artist_tally("Pat Metheny")
+```
 
-metheny %>% 
-  group_by(album) %>% 
-  mutate(last_played = max(play_date)) %>% 
-  ungroup() %>% 
-  group_by(album, last_played) %>% 
-  summarise(plays = n()) %>% 
-  arrange(desc(plays), last_played)
 
+### XTC
+
+
+```{r}
+artist_tally("XTC")
+```
+
+
+### Steely Dan
+
+
+```{r}
+artist_tally("Steely Dan")
+```
+
+
+### Tallis Scholars
+
+
+```{r}
+artist_tally("Tallis Scholars")
 ```
 
 
@@ -449,8 +482,8 @@ x <- tibble(
   value = c(1, 1, 2, 3, 4, 4),
   name = c("a", "b", "c", "d", "e", "e"))
 
-x %>% 
-  group_by(value, name) %>% 
+x |> 
+  group_by(value, name) |> 
   count()
 
 ```
@@ -459,15 +492,15 @@ LP and CD only
 
 ```{r}
 
-df_playlist %>% 
-  filter(format != "iTunes") %>%
-  filter(format != "iMusic") %>% 
-  filter(format != "iPhone") %>% 
-  filter(format != "foobar2000") %>% 
+df_playlist |> 
+  filter(format != "iTunes") |>
+  filter(format != "iMusic") |> 
+  filter(format != "iPhone") |> 
+  filter(format != "foobar2000") |> 
   #
-  group_by(artist, album, format) %>% 
-  count() %>% 
-  filter(n > 1) %>% 
+  group_by(artist, album, format) |> 
+  count() |> 
+  filter(n > 1) |> 
   arrange(desc(n))
   
 
@@ -479,13 +512,13 @@ Everything
 
 ```{r}
 
-df_playlist %>% 
-  group_by(artist, album) %>% 
-  count() %>% 
+df_playlist |> 
+  group_by(artist, album) |> 
+  count() |> 
   filter(
     n > 1 &
     !is.na(artist)
-    ) %>% 
+    ) |> 
   arrange(desc(n))
   
 
