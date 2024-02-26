@@ -336,13 +336,16 @@ These are the longest-ago played LPs, but may have been played more recently in 
 
 ```{r ecm_longest_ago_lp}
 
-ecm |> 
+ecm_lp <- ecm |> 
   filter(format == "LP") |> 
   group_by(artist, album) |> 
-  summarise(last_played = max(play_date)) |> 
+  summarise(
+    last_played = max(play_date),
+    n = n()) |> 
   ungroup() |> 
   slice_min(order_by = last_played, n = 10)
-  
+
+ecm_lp  
 
 ```
 
@@ -353,27 +356,25 @@ Longest ago played LP, where it is only the LP that has been played
 ```{r}
 ecm_last_played <- ecm |> 
   group_by(artist, album) |> 
-  summarise(last_played = max(play_date)) |> 
-  ungroup()
+  summarise(
+    last_played = max(play_date),
+    n = n()) |> 
+  ungroup() |> 
+  arrange(last_played)
 
-# check unique
-ecm_last_played |> 
+ecm_last_played_lp <- ecm |> 
   group_by(artist, album) |> 
-  tally() |> 
-  filter(n > 1)
-
-# create list of unique ECM LPs
-ecm_lp <- ecm |>
+  mutate(
+    last_played = max(play_date),
+    n = n()) |> 
+  ungroup() |> 
+  arrange(last_played) |> 
   filter(format == "LP") |> 
-  distinct(artist, album)
+  arrange(n)
 
-# join, slice with 10 least recently played
-ecm_lp |> 
-  left_join(ecm_last_played, by = c("artist", "album")) |> 
-  slice_min(order_by = last_played, n = 20)
-  
-
+ecm_last_played_lp
 ```
+
 
 
 
@@ -418,7 +419,7 @@ artist_list <- df_playlist |>
 #  arrange(desc(n))
 
 
-artist_list |> 
+artist_list_tally <- artist_list |> 
   group_by(album) |> 
   mutate(last_played = max(play_date)) |> 
   ungroup() |> 
@@ -426,11 +427,32 @@ artist_list |>
   summarise(plays = n()) |> 
   arrange(desc(plays), last_played)
 
+artist_list_tally
+View(artist_list_tally)
+
 }
 
 #artist_name <- "Pat Metheny"
 
 
+```
+
+
+
+### Eberhard Weber
+
+
+```{r}
+artist_tally("Eberhard Weber")
+```
+
+
+
+### Keith Jarrett
+
+
+```{r}
+artist_tally("Keith Jarrett")
 ```
 
 
