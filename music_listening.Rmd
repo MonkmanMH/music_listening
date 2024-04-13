@@ -54,6 +54,7 @@ music_playlist <- "https://docs.google.com/spreadsheets/d/1kHBEMFEDwyszldNbNvD2A
 
 # use the "range_speedread()" function to speed things up
 # see https://googlesheets4.tidyverse.org/reference/range_speedread.html
+gs4_deauth()
 df_playlist <- googlesheets4::range_speedread(music_playlist)
 
 #tail(df_playlist)
@@ -428,7 +429,7 @@ artist_list_tally <- artist_list |>
   arrange(desc(plays), last_played)
 
 artist_list_tally
-View(artist_list_tally)
+#View(artist_list_tally)
 
 }
 
