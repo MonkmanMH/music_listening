@@ -392,7 +392,7 @@ ecm |>
 ```
 
 
-## tally by artist
+## tally by artist: ECM
 
 ```{r artist_function}
 
@@ -465,6 +465,24 @@ artist_tally("Pat Metheny")
 ```
 
 
+### Ralph Towner
+
+
+```{r}
+artist_tally("Ralph Towner")
+```
+
+
+## tally by artist: FPAR
+
+### Steely Dan
+
+
+```{r}
+artist_tally("Steely Dan")
+```
+
+
 ### XTC
 
 
@@ -473,12 +491,7 @@ artist_tally("XTC")
 ```
 
 
-### Steely Dan
-
-
-```{r}
-artist_tally("Steely Dan")
-```
+## tally by artist: classical
 
 
 ### Glenn Gould
