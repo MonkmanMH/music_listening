@@ -34,6 +34,104 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ```
 
+### functions
+
+
+```{r function_artist}
+
+
+artist_tally <- function(artist_name){
+
+artist_list <- df_playlist |> 
+  filter(str_detect(artist, artist_name)) |> 
+  drop_na(year) |> 
+  mutate(play_date = make_date(year, month, day)) |> 
+  select(artist, 
+         album, 
+         format,
+         play_date)
+
+#artist_list
+
+
+### most played
+
+
+#artist_list |> 
+#  group_by(album) |> 
+#  tally() |> 
+#  arrange(desc(n))
+
+
+artist_list_tally <- artist_list |> 
+  group_by(album) |> 
+  mutate(last_played = max(play_date)) |> 
+  ungroup() |> 
+  group_by(album, last_played) |> 
+  summarise(plays = n()) |> 
+  arrange(desc(plays), last_played)
+
+artist_list_tally
+#View(artist_list_tally)
+
+}
+
+#artist_name <- "Pat Metheny"
+
+
+```
+
+
+
+
+```{r function_composer}
+
+
+composer_tally <- function(composer_name){
+
+composer_list <- df_playlist |> 
+  filter(str_detect(composer, composer_name)) |> 
+  drop_na(year) |> 
+  mutate(play_date = make_date(year, month, day)) |> 
+  select(artist, 
+         album, 
+         composer,
+         format,
+         play_date)
+
+#artist_list
+
+
+### most played
+
+
+#artist_list |> 
+#  group_by(album) |> 
+#  tally() |> 
+#  arrange(desc(n))
+
+
+composer_list_tally <- composer_list |> 
+  group_by(artist, album) |> 
+  mutate(last_played = max(play_date)) |> 
+  ungroup() |> 
+  group_by(artist, album, last_played) |> 
+  summarise(plays = n()) |> 
+  arrange(desc(plays), last_played)
+
+composer_list_tally
+#View(artist_list_tally)
+
+}
+
+#artist_name <- "Pat Metheny"
+
+
+```
+
+
+
+
 ## read from google
 
 https://www.r-bloggers.com/2021/12/how-to-connect-r-to-google-sheets-using-googlesheets4/
@@ -394,51 +492,6 @@ ecm |>
 
 ## tally by artist: ECM
 
-```{r artist_function}
-
-
-artist_tally <- function(artist_name){
-
-artist_list <- df_playlist |> 
-  filter(str_detect(artist, artist_name)) |> 
-  drop_na(year) |> 
-  mutate(play_date = make_date(year, month, day)) |> 
-  select(artist, 
-         album, 
-         format,
-         play_date)
-
-#artist_list
-
-
-### most played
-
-
-#artist_list |> 
-#  group_by(album) |> 
-#  tally() |> 
-#  arrange(desc(n))
-
-
-artist_list_tally <- artist_list |> 
-  group_by(album) |> 
-  mutate(last_played = max(play_date)) |> 
-  ungroup() |> 
-  group_by(album, last_played) |> 
-  summarise(plays = n()) |> 
-  arrange(desc(plays), last_played)
-
-artist_list_tally
-#View(artist_list_tally)
-
-}
-
-#artist_name <- "Pat Metheny"
-
-
-```
-
-
 
 ### Eberhard Weber
 
@@ -490,6 +543,16 @@ artist_tally("Steely Dan")
 artist_tally("XTC")
 ```
 
+
+## tally by composer: classical
+
+
+### Charles Ives
+
+
+```{r}
+composer_tally("Ives")
+```
 
 ## tally by artist: classical
 
