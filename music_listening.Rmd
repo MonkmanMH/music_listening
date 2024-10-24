@@ -86,11 +86,15 @@ artist_list_tally
 
 ```{r function_composer}
 
+# takes last name of composer and filters where name appears in the album column, 
+# with the format "<composer_name>: "
 
 composer_tally <- function(composer_name){
 
+composer_name <- glue::glue("{composer_name}: ")  
+  
 composer_list <- df_playlist |> 
-  filter(str_detect(composer, composer_name)) |> 
+  filter(str_detect(album, composer_name)) |> 
   drop_na(year) |> 
   mutate(play_date = make_date(year, month, day)) |> 
   select(artist, 
@@ -527,6 +531,22 @@ artist_tally("Ralph Towner")
 
 
 ## tally by artist: FPAR
+
+
+### William Ackerman
+
+
+```{r}
+artist_tally("William Ackerman")
+```
+
+### Brian Eno
+
+
+```{r}
+artist_tally("Brian Eno")
+```
+
 
 ### Steely Dan
 
