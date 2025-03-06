@@ -4,8 +4,10 @@ subtitle: before and after the pandemic
 output:
   html_document:
     df_print: paged
-    toc: yes
-    toc_float: yes
+    toc: true
+    toc_float: true
+  word_document:
+    toc: true
 ---
 
 I've been working from home since mid-March 2020. This has afforded me the opportunity to listen to more of my collection of LPs and CDs than I might normally. But how much more?
@@ -45,7 +47,7 @@ artist_tally <- function(artist_name){
 artist_list <- df_playlist |> 
   filter(str_detect(artist, artist_name)) |> 
   drop_na(year) |> 
-  mutate(play_date = make_date(year, month, day)) |> 
+#  mutate(play_date = make_date(year, month, day)) |> 
   select(artist, 
          album, 
          format,
@@ -96,7 +98,7 @@ composer_name <- glue::glue("{composer_name}: ")
 composer_list <- df_playlist |> 
   filter(str_detect(album, composer_name)) |> 
   drop_na(year) |> 
-  mutate(play_date = make_date(year, month, day)) |> 
+#  mutate(play_date = make_date(year, month, day)) |> 
   select(artist, 
          album, 
          composer,
@@ -169,7 +171,8 @@ df_playlist <- googlesheets4::range_speedread(music_playlist,
 
 df_playlist <- df_playlist |> 
   rename("index" = starts_with("index")) |> 
-  mutate(index = as.integer(index))
+  mutate(index = as.integer(index)) |> 
+  mutate(play_date = make_date(year, month, day))
 
 #tail(df_playlist)
 
@@ -342,7 +345,7 @@ df_play_summary |>
 
 
 
-## ECM
+## --ECM--
 
 ```{r}
 
@@ -493,11 +496,167 @@ ecm |>
 
 ```
 
+## --Windham Hill--
+
+
+
+```{r}
+
+windhill <- df_playlist |> 
+  filter(str_detect(label, "Windham Hill")) |> 
+  drop_na(year) |> 
+  mutate(play_date = make_date(year, month, day)) |> 
+  select(artist, 
+         album, 
+         format,
+         play_date, 
+         index)
+
+#|> 
+#  filter(play_date > as_date("2017-03-31"))
+
+#ecm
+```
+
+### most played
+
+#### artist
+
+```{r}
+
+windhill |> 
+  group_by(artist) |> 
+  tally() |> 
+  arrange(desc(n))
+
+```
+
+#### album
+
+```{r}
+
+windhill |> 
+  group_by(artist, album) |> 
+  tally() |> 
+  arrange(desc(n))
+
+```
+
+
+### only played once
+
+```{r}
+
+windhill_min <- windhill |> 
+#  filter(format == LP) |> 
+  group_by(artist, album) |> 
+  tally() |> 
+  filter(n == 1)
+  
+windhill_min
+
+```
+
+
+### most/least recently played
+
+
+most recent
+
+```{r}
+
+windhill |> 
+  select(artist, 
+         album, 
+         format, 
+         play_date, 
+         index) |> 
+  arrange(desc(play_date), desc(index))
+
+```
+
+least recent (longest ago), played once
+
+```{r}
+
+windhill |> 
+  semi_join(windhill_min, by = c("artist", "album")) |> 
+  select(artist, album, format, play_date, index)
+
+```
+
+### Windham Hill lps
+
+#### longest-ago played LPs
+
+These are the longest-ago played LPs, but may have been played more recently in another format
+
+```{r windhill_longest_ago_lp}
+
+windhill_lp <- windhill |> 
+  filter(format == "LP") |> 
+  group_by(artist, album) |> 
+  summarise(
+    last_played = max(play_date),
+    n = n()) |> 
+  ungroup() |> 
+  slice_min(order_by = last_played, n = 10)
+
+windhill_lp  
+
+```
+
+#### longest-ago played LPs, full stop
+
+Longest ago played LP, where it is only the LP that has been played
+
+```{r}
+#windhill_last_played <- windhill |> 
+#  group_by(artist, album) |> 
+#  summarise(
+#    last_played = max(play_date),
+#    n = n()) |> 
+#  ungroup() |> 
+#  arrange(last_played)
+
+windhill_last_played_lp <- windhill |> 
+  group_by(artist, album) |> 
+  mutate(
+    last_played = max(play_date),
+    n = n()
+    ) |> 
+#  ungroup() |> 
+  filter(format == "LP") |> 
+  filter(
+    n == 1
+#    last_played == max(last_played)
+    ) |> 
+  arrange(last_played)
+
+windhill_last_played_lp
+```
+
+
+
+
+#### most recently played
+
+```{r windhill_most_recent}
+# the entire list
+windhill |> 
+  filter(format == "LP") |> 
+  arrange(desc(index))
+
+
+
+```
+
+##--TALLY BY ARTIST--
 
 ## tally by artist: ECM
 
 
-### Eberhard Weber
+#### Eberhard Weber
 
 
 ```{r}
@@ -506,7 +665,7 @@ artist_tally("Eberhard Weber")
 
 
 
-### Keith Jarrett
+#### Keith Jarrett
 
 
 ```{r}
@@ -514,7 +673,7 @@ artist_tally("Keith Jarrett")
 ```
 
 
-### Pat Metheny
+#### Pat Metheny
 
 
 ```{r}
@@ -522,7 +681,7 @@ artist_tally("Pat Metheny")
 ```
 
 
-### Ralph Towner
+#### Ralph Towner
 
 
 ```{r}
@@ -533,22 +692,41 @@ artist_tally("Ralph Towner")
 ## tally by artist: FPAR
 
 
-### William Ackerman
+#### William Ackerman
 
 
 ```{r}
 artist_tally("William Ackerman")
 ```
 
-### Brian Eno
+#### Brian Eno
 
 
 ```{r}
 artist_tally("Brian Eno")
 ```
 
+Thursday Afternoon: true or false?
 
-### Steely Dan
+```{r}
+
+df_playlist |> 
+  filter(artist == "Brian Eno") |> 
+  filter(album == "Thursday Afternoon") |> 
+  select(artist, album, play_date) |> 
+  mutate(day_of_the_week = wday(play_date, label = TRUE, abbr = FALSE)) |> 
+  mutate(well_question_mark = case_when(
+    day_of_the_week == "Thursday" ~ TRUE,
+    TRUE ~ FALSE
+  ))
+
+
+```
+
+
+
+
+#### Steely Dan
 
 
 ```{r}
@@ -556,7 +734,7 @@ artist_tally("Steely Dan")
 ```
 
 
-### XTC
+#### XTC
 
 
 ```{r}
@@ -566,25 +744,37 @@ artist_tally("XTC")
 
 ## tally by composer: classical
 
+#### Aaron Copland
 
-### Charles Ives
+```{r}
+composer_tally("Copland")
+```
 
+#### Charles Ives
 
 ```{r}
 composer_tally("Ives")
 ```
 
+
+#### Ralph Vaughan Williams
+
+```{r}
+composer_tally("Vaughan Williams")
+```
+
+
 ## tally by artist: classical
 
 
-### Glenn Gould
+#### Glenn Gould
 
 
 ```{r}
 artist_tally("Glenn Gould")
 ```
 
-### Tallis Scholars
+#### Tallis Scholars
 
 
 ```{r}
